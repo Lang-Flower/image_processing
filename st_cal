@@ -1,5 +1,5 @@
 %This is a matlab image processing program for experimental data;
-%use hanging drop method to detect the surface tension of drop;
+%use pendant drop method to detect the surface tension of drop;
 %%
 %surface detection through imagine processing
 %method by <http://www.maist.com.cn/new/methods/Pendant-Drop.html>
