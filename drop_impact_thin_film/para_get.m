@@ -19,6 +19,12 @@ fprintf('%d\n',frame_number)
 velocity=zeros(frame_number,1);
 mass_center=zeros(frame_number,2);
 
+%采集拍摄的频率，放大倍数，相机单位像素的原始长度
+collect=inputdlg({'拍摄帧率fps','放大倍数','相机单位像素原始长度μm/pixel'},'拍摄参数',[1 10;1 5;1 7]);
+fps=str2double(collect{1,1});
+magnification=str2double(collect{2,1});
+len_pixel=str2double(collect{3,1});
+
 %截取要进行操作的区域
 h1=questdlg('截取画面中包含信息的区域','消息提示','确定');
 test=read(video,100);
@@ -38,7 +44,9 @@ close(figure(1))
 
 %处理后的图片数据存放。
 img_store=zeros(frame_number,x_rd-x_lu+1,y_rd-y_lu+1);
-bottom=zeros
+bottom=zeros(frame_number,1);
+
+hh=waitbar(0,'please wait');
 for i=1:frame_number
     img=read(video,i);%读出图片i
     if i==50
@@ -53,18 +61,39 @@ for i=1:frame_number
     level=graythresh(img);
     img_bw=imbinarize(img,level);
     
-    %去掉图像中噪点不必要的连通域。
+    %去掉图像杂点
     img_open=kill_blank(img_bw);
+    
+    if i==50
+        figure(3)
+        subplot(1,2,1),
+        imshow(img);
+        title('imgage trim')
+        subplot(1,2,2)
+        imshow(img_open)
+        title('img open');
+    end
+    
+    %计算液滴底部y坐标并放入bottom
     for j=1:y_rd-y_lu+1
         for k=1:x_rd-x_lu+1
-            img_open
+            if img_open(j,k)==0
+                bottom(i,1)=j;
+            end
             %%%%%%%%%%%%%
             %%%%%%%未完待续
             %%%%%%%%%%%%
         end
     end
-    if mod(i,50)==0
-        st=sprintf('now frame is %d,total frames are %d',i,frame_number);
-        disp(st)
-    end
+   
+    %时间尺
+    str=['程序运行中',num2str(i/frame_number*100),'%'];
+    waitbar(i/frame_number,hh,str)
+%     if mod(i,50)==0
+%         st=sprintf('now frame is %d,total frames are %d',i,frame_number);
+%         disp(st)
+%     end
 end
+delete(hh);
+figure(4)
+plot((1:frame_number)',bottom(:,1))
