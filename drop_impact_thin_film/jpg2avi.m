@@ -21,6 +21,7 @@ end
 %%生成视频的参数设定
 aa=cd;
 video_name=sprintf(aa,'\',video_name,'.avi');
+%%%%avifile函数会出错
 avifile=avifile(video_name);  %创建一个avi视频文件对象，开始时其为空
 avifile.Quality=quality;%视频文件的质量0-100
 avifile.Fps=fps;%
