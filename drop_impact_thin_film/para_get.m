@@ -1,6 +1,6 @@
 % obtain drop diameter and velocity
 % 2018年11月23日21点30分
-% version 3.0
+% version 1.0
 clc
 clear all;
 % find video
@@ -52,10 +52,10 @@ diameter=zeros(frame_number,1);
 hh=waitbar(0,'please wait');
 for i=1:frame_number
     img=read(video,i);%读出图片i
-    if i==50
-        figure(2)
-        imshow(img)
-    end
+%     if i==50
+%         figure(2)
+%         imshow(img)
+%     end
     
     %取液滴所在位置区域，消除边角黑影，第一项为图片垂直方向，第二项为水平方向。
     img=img(y_lu:y_rd,x_lu:x_rd);
@@ -67,15 +67,15 @@ for i=1:frame_number
     %去掉图像杂点
     img_open=kill_blank(img_bw);
     
-    if i==50
-        figure(3)
-        subplot(1,2,1),
-        imshow(img);
-        title('imgage trim')
-        subplot(1,2,2)
-        imshow(img_open)
-        title('img open');
-    end
+%     if i==50
+%         figure(3)
+%         subplot(1,2,1),
+%         imshow(img);
+%         title('imgage trim')
+%         subplot(1,2,2)
+%         imshow(img_open)
+%         title('img open');
+%     end
 
     %计算液滴底部y坐标并放入bottom
     dia=zeros(y_rd-y_lu+1,1);
@@ -116,10 +116,34 @@ delete(hh);
 % jpg2avi(img_store)
 figure(4)
 subplot(1,2,1),
-plot((1:frame_number)'*(1/fps*10^3),bottom(:,1)*(len_pixel/magnification))
+plot((1:frame_number)'*(1/fps*10^3),bottom(:,1)*(len_pixel/magnification/1000))
 title('y location of bottom of droplet vs frame'),
-xlabel('time/ms'),ylabel('y location/\mum')
+xlabel('time/ms'),ylabel('y location/mm')
 subplot(1,2,2)
 plot((1:frame_number)',diameter(:,1)*(len_pixel/magnification)/1000),
 title('drop diameter vs frame')
 xlabel('frame'),ylabel('drop diameter/mm')
+
+%%截取bottom中坐标求速度.
+left_flag=0;
+right_flag=1;
+cut_left=0;
+cut_right=0;
+for i=2:frame_number-2
+    if (bottom(i,1)-bottom(i-1,1))<5*(bottom(i+1,1)-bottom(i,1)) && left_flag==0
+        cut_left=i;
+        left_flag=1;
+        right_flag=0;
+    end
+    if (bottom(i,1)-bottom(i-1,1))>10*(bottom(i+1,1)-bottom(i,1)) && right_flag==0
+        cut_right=i;
+        right_flag=1;
+    end
+end
+figure(5)
+plot((cut_left:cut_right)'*(1/fps*10^3),bottom(cut_left:cut_right,1)*(len_pixel/magnification/1000))
+title('y location of bottom of droplet vs frame'),
+xlabel('time/ms'),ylabel('y location/mm')
+speed=polyfit((cut_left:cut_right)'*(1/fps*10^3),bottom(cut_left:cut_right,1)*(len_pixel/magnification/1000),1);
+velocity_final=speed(1,1);
+fprintf('final speed is %d m/s\n',velocity_final)
