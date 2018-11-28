@@ -1,6 +1,6 @@
 % obtain drop diameter and velocity
 % 2018年11月23日21点30分
-% version 1.0
+% version 3.0
 clc
 clear all;
 % find video
@@ -20,7 +20,10 @@ velocity=zeros(frame_number,1);
 mass_center=zeros(frame_number,2);
 
 %采集拍摄的频率，放大倍数，相机单位像素的原始长度
-collect=inputdlg({'拍摄帧率fps','放大倍数','相机单位像素原始长度μm/pixel'},'拍摄参数',[1 10;1 5;1 7]);
+definput={'20000','2','20'};
+opts.Resize = 'on';
+collect=inputdlg({'拍摄帧率fps','放大倍数','相机单位像素原始长度μm/pixel'},'拍摄参数',...
+    [1 10;1 5;1 7],definput,opts);
 fps=str2double(collect{1,1});
 magnification=str2double(collect{2,1});
 len_pixel=str2double(collect{3,1});
@@ -43,9 +46,9 @@ y_rd=ceil(y_rd);
 close(figure(1))
 
 %处理后的图片数据存放。
-img_store=zeros(frame_number,x_rd-x_lu+1,y_rd-y_lu+1);
+img_store=zeros(frame_number,y_rd-y_lu+1,x_rd-x_lu+1);
 bottom=zeros(frame_number,1);
-
+diameter=zeros(frame_number,1);
 hh=waitbar(0,'please wait');
 for i=1:frame_number
     img=read(video,i);%读出图片i
@@ -73,27 +76,50 @@ for i=1:frame_number
         imshow(img_open)
         title('img open');
     end
-    
+
     %计算液滴底部y坐标并放入bottom
+    dia=zeros(y_rd-y_lu+1,1);
+    left=0;
+    flag=0;
+    right=0;
     for j=1:y_rd-y_lu+1
         for k=1:x_rd-x_lu+1
             if img_open(j,k)==0
                 bottom(i,1)=j;
+                if k<=left || flag==0
+                    left=k;
+                    flag=1;
+                end
+                if k>=right
+                    right=k;
+                end
             end
-            %%%%%%%%%%%%%
-            %%%%%%%未完待续
-            %%%%%%%%%%%%
         end
+        dia(j,1)=right-left;
     end
-   
-    %时间尺
+    
+    %计算直径
+    diameter(i,1)=max(dia);
+    
+    %进度条
     str=['程序运行中',num2str(i/frame_number*100),'%'];
     waitbar(i/frame_number,hh,str)
 %     if mod(i,50)==0
 %         st=sprintf('now frame is %d,total frames are %d',i,frame_number);
 %         disp(st)
 %     end
+
+     %将截取的图片保存到变量img_store里面
+     img_store(i,:,:)=img_open(:,:);
 end
 delete(hh);
+% jpg2avi(img_store)
 figure(4)
-plot((1:frame_number)',bottom(:,1))
+subplot(1,2,1),
+plot((1:frame_number)'*(1/fps*10^3),bottom(:,1)*(len_pixel/magnification))
+title('y location of bottom of droplet vs frame'),
+xlabel('time/ms'),ylabel('y location/\mum')
+subplot(1,2,2)
+plot((1:frame_number)',diameter(:,1)*(len_pixel/magnification)/1000),
+title('drop diameter vs frame')
+xlabel('frame'),ylabel('drop diameter/mm')
