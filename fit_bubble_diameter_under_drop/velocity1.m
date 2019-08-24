@@ -8,7 +8,7 @@ axis([0 150 0.5 4.5])
 hold on
 errorbar(v_ex,err.*v_ex,'bd','Markersize',5,'Linewidth',1)
 yla=ylabel('Velocity');
-set(gca,'LineWidth',1.5) %è®¾ç½®è¾¹æ¡†
+set(gca,'LineWidth',1.5) %ÉèÖÃ±ß¿ò
 la=legend('Calculate data','Experiment data');
 set([yla la],'Fontname','Times New Roman','FontWeight','Bold','FontSize',10)
 % set(la,'box','off')
