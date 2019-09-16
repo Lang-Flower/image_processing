@@ -1,2 +1,3 @@
 %处理数据的小工具
 %tip tool for data process
+strcut,批量处理文件名的字符串，截取文件名的部分实验数据
