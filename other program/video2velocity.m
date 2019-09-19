@@ -18,14 +18,15 @@ fprintf('frame number:\n%d\n',frame_number)
 mass_center=zeros(frame_number,2);
 logic=0;%判断多连通域质心数量，一旦连通域数量大于1，则变成1不再统计质心的数量
 img_1=read(video,1); %读取第一帧背景图
-img_1=img_1(92:543,189:774);
-h=waitbar(0,'处理图片中，请稍后');
-for i=2:frame_number
+img_1=img_1(88:542,160:720);
+% h=waitbar(0,'处理图片中，请稍后');
+for i=2:200
+%     waitbar(i/frame_number)
     area=0;
     sum_x=0;
     sum_y=0;
     img=read(video,i);%读出图片i
-    img=img(92:543,189:774);%裁剪图片，比如视频中出现的拍摄信息
+    img=img(88:542,160:720);%裁剪图片，比如视频中出现的拍摄信息
     img=img_1-img;
     t=graythresh(img);
     img_bw=imbinarize(img,t);
@@ -62,14 +63,18 @@ for i=2:frame_number
     mass_center(i,1)=fix(sum_x/area);
     mass_center(i,2)=fix(sum_y/area);
     if mod(i,floor(frame_number/10))==0
-        fprintf('图片处理进度:%d/%d\n',i,frame_number)
+        fprintf('图片处理进度:%d/%d\n',i,200)
     end
-    waitbar(i/frame_number)
 end
-close(h)
+% close(h)
 figure;
-plot(mass_center(:,1),'*')
-time=(60:1:100);
+plot(mass_center(1:200,1),'*')
+grid on
+pause;
+st=input('速度段起始帧:\n');
+ed=input('速度段结束帧:\n');
+ma=input('放大倍数:\n');
+time=(st:1:ed);
 time=time';
-p=polyfit(time.*5,mass_center(60:100,1).*20,1);
+p=polyfit(time.*0.5,mass_center(st:ed,1).*20/0.5/1.6/ma,1);
 p
